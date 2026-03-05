@@ -13,7 +13,6 @@ use App\Http\Controllers\Api\AuthController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-
 /*
 |--------------------------------------------------------------------------
 | Protected Routes (Require Sanctum Token)
@@ -26,12 +25,30 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    // logout
-    Route::post('/logout', [AuthController::class, 'logout']);
-
     // optional: get own profile
     Route::get('/me', [AuthController::class, 'me']);
 
-    // protect student CRUD
-    Route::apiResource('students', StudentController::class);
+    // logout
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authorization Tests (Spatie)
+    |--------------------------------------------------------------------------
+    */
+
+    // Role-based test: only admin can access
+    Route::get('/admin-test', function () {
+        return response()->json(['message' => 'Admin access granted']);
+    })->middleware('role:admin');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Students Routes (Permission Protected)
+    |--------------------------------------------------------------------------
+    */
+
+    // Only users with "manage students" permission can CRUD students
+    Route::apiResource('students', StudentController::class)
+        ->middleware('permission:manage students');
 });
